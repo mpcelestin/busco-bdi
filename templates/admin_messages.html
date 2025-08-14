@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Messages - BUSCO Admin{% endblock %}
+
+{% block content %}
+<section class="admin-messages">
+    <div class="container">
+        <h2>Customer Messages</h2>
+        
+        {% if not messages %}
+        <div class="no-messages">
+            <p>No messages found in the database.</p>
+            <p>Try sending a test message from the contact form.</p>
+        </div>
+        {% else %}
+        <div class="messages-list">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in messages %}
+                    <tr class="{{ 'unread' if not message['read'] else '' }}">
+                        <td>{{ message['id'] }}</td>
+                        <td>{{ message['name'] }}</td>
+                        <td><a href="mailto:{{ message['email'] }}">{{ message['email'] }}</a></td>
+                        <td>{{ message['created_at'] }}</td>
+                        <td>
+                            {% if not message['read'] %}
+                            <span class="badge unread-badge">New</span>
+                            {% else %}
+                            <span class="badge read-badge">Read</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn view-btn" data-id="{{ message['id'] }}">View</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- Message View Modal -->
+<div id="messageModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h3>Message Details</h3>
+        <div class="message-content">
+            <p><strong>ID:</strong> <span id="messageId"></span></p>
+            <p><strong>Name:</strong> <span id="messageName"></span></p>
+            <p><strong>Email:</strong> <span id="messageEmail"></span></p>
+            <p><strong>Date:</strong> <span id="messageDate"></span></p>
+            <div class="message-body">
+                <p><strong>Message:</strong></p>
+                <p id="messageText"></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // View message details
+    document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const row = this.closest('tr');
+            const modal = document.getElementById('messageModal');
+            
+            // Populate modal
+            document.getElementById('messageId').textContent = row.cells[0].textContent;
+            document.getElementById('messageName').textContent = row.cells[1].textContent;
+            document.getElementById('messageEmail').textContent = row.cells[2].textContent;
+            document.getElementById('messageDate').textContent = row.cells[3].textContent;
+            
+            // Get full message text (you'll need to implement this API endpoint)
+            fetch(`/admin/get_message/${row.cells[0].textContent}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('messageText').textContent = data.message;
+                    modal.style.display = 'block';
+                    
+                    // Mark as read
+                    if (row.classList.contains('unread')) {
+                        fetch(`/admin/mark_read/${row.cells[0].textContent}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    row.classList.remove('unread');
+                                    row.cells[4].innerHTML = '<span class="badge read-badge">Read</span>';
+                                }
+                            });
+                    }
+                });
+        });
+    });
+    
+    // Close modal
+    document.querySelector('.close').addEventListener('click', function() {
+        document.getElementById('messageModal').style.display = 'none';
+    });
+});
+</script>
+{% endblock %}

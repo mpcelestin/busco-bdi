@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <section class="hero">
+        <div class="container">
+            <h1>Premium Snapple Products</h1>
+            <p>Discover our high-quality beverages and snacks</p>
+            <a href="#products" class="btn">View Products</a>
+        </div>
+    </section>
+
+    <section id="products" class="products-section">
+        <div class="container">
+            <h2>Our Products</h2>
+            <div class="products-grid">
+                {% for product in products %}
+                <div class="product-card">
+                    <div class="product-image">
+                        <img src="{{ url_for('static', filename=product[4]) }}" alt="{{ product[1] }}">
+                    </div>
+                    <div class="product-info">
+                        <h3>{{ product[1] }}</h3>
+                        <p class="price">{{ product[3] }} BIF</p>
+                        <p class="description">{{ product[2] }}</p>
+                        <div class="product-actions">
+                            <a href="https://wa.me/{{ product[5] }}?text=I'm interested in {{ product[1] }}" class="btn whatsapp-btn">
+                                <i class="fab fa-whatsapp"></i> WhatsApp
+                            </a>
+                            <a href="tel:{{ product[5] }}" class="btn call-btn">
+                                <i class="fas fa-phone"></i> Call
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <section id="about" class="about-section">
+        <div class="container">
+            <h2>About BUSCO</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p>BUSCO - Burundi Snapple Company is a leading provider of high-quality beverages and snacks in Burundi. We are committed to delivering products that meet international standards while maintaining authentic local flavors.</p>
+                    <p>Our mission is to refresh Burundi with innovative and delicious products that cater to all age groups and preferences.</p>
+                </div>
+                <div class="about-image">
+                    <img src="{{ url_for('static', filename='images/about.jpg') }}" alt="About BUSCO">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="contact-section">
+        <div class="container">
+            <h2>Get In Touch</h2>
+            <div class="contact-content">
+                <div class="contact-info">
+                    <h3>Contact Information</h3>
+                    <p><i class="fas fa-map-marker-alt"></i> Bujumbura, Burundi</p>
+                    <p><i class="fas fa-phone"></i> +257 68 59 61 64</p>
+                    <p><i class="fas fa-envelope"></i> busco@gmail.com</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="https://wa.me/68596164"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                </div>
+                <div class="contact-form">
+    <h3>Send Us a Message</h3>
+    <form id="contactForm">
+        <div class="form-group">
+            <input type="text" id="contactName" name="name" placeholder="Your Name" required>
+        </div>
+        <div class="form-group">
+            <input type="email" id="contactEmail" name="email" placeholder="Your Email" required>
+        </div>
+        <div class="form-group">
+            <textarea id="contactMessage" name="message" placeholder="Your Message" required></textarea>
+        </div>
+        <button type="submit" class="btn">Send Message</button>
+        <div id="formResponse" class="form-response"></div>
+    </form>
+</div>
+    </section>
+{% endblock %}

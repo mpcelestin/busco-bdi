@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - BUSCO{% endblock %}
+
+{% block content %}
+    {% if not dashboard %}
+    <section class="admin-login">
+        <div class="container">
+            <div class="login-box">
+                <h2>Admin Login</h2>
+                <form method="POST" action="{{ url_for('admin') }}">
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn">Login</button>
+                </form>
+            </div>
+        </div>
+    </section>
+    {% else %}
+    <section class="admin-dashboard">
+        <div class="container">
+            <h2>Admin Dashboard</h2>
+            <div class="dashboard-actions">
+                <button id="addProductBtn" class="btn">Add New Product</button>
+                <a href="{{ url_for('admin_logout') }}" class="btn logout-btn">Logout</a>
+                <a href="{{ url_for('view_messages') }}" class="btn messages-btn">View Messages</a>
+            </div>
+
+            <!-- Add Product Modal -->
+            <div id="addProductModal" class="modal">
+                <div class="modal-content">
+                    <span class="close">&times;</span>
+                    <h3>Add New Product</h3>
+                    <form id="productForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="productName">Product Name</label>
+                            <input type="text" id="productName" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productDescription">Description</label>
+                            <textarea id="productDescription" name="description" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPrice">Price (BIF)</label>
+                            <input type="number" id="productPrice" name="price" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productPhone">Contact Phone</label>
+                            <input type="tel" id="productPhone" name="phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productImage">Product Image</label>
+                            <input type="file" id="productImage" name="image" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn">Save Product</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="products-list">
+                <h3>Product Management</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Name</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for product in products %}
+                        <tr>
+                            <td><img src="{{ url_for('static', filename=product[4]) }}" alt="{{ product[1] }}" class="product-thumbnail"></td>
+                            <td>{{ product[1] }}</td>
+                            <td>{{ product[3] }} BIF</td>
+                            <td>
+                                {% if product[6] == 1 %}
+                                <span class="status approved">Approved</span>
+                                {% else %}
+                                <span class="status pending">Pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="actions">
+                                {% if product[6] == 0 %}
+                                <button class="btn approve-btn" data-id="{{ product[0] }}">Approve</button>
+                                {% endif %}
+                                <button class="btn delete-btn" data-id="{{ product[0] }}">Delete</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+    {% endif %}
+{% endblock %}
+
+{% block scripts %}
+    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}
