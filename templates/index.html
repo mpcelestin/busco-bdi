@@ -6,6 +6,7 @@
             <h1>Premium Snapple Products</h1>
             <p>Discover our high-quality beverages and snacks</p>
             <a href="#products" class="btn">View Products</a>
+            <a href="#contact" class="btn" style="margin-top: 10px;">Get In Touch</a>
         </div>
     </section>
 
@@ -46,42 +47,73 @@
                     <p>Our mission is to refresh Burundi with innovative and delicious products that cater to all age groups and preferences.</p>
                 </div>
                 <div class="about-image">
-                    <img src="{{ url_for('static', filename='images/about.jpg') }}" alt="About BUSCO">
+                    
                 </div>
             </div>
         </div>
     </section>
 
     <section id="contact" class="contact-section">
-        <div class="container">
-            <h2>Get In Touch</h2>
-            <div class="contact-content">
-                <div class="contact-info">
-                    <h3>Contact Information</h3>
-                    <p><i class="fas fa-map-marker-alt"></i> Bujumbura, Burundi</p>
-                    <p><i class="fas fa-phone"></i> +257 68 59 61 64</p>
-                    <p><i class="fas fa-envelope"></i> busco@gmail.com</p>
-                    <div class="social-links">
-                        <a href="#"><i class="fab fa-facebook"></i></a>
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="https://wa.me/68596164"><i class="fab fa-whatsapp"></i></a>
-                    </div>
+    <div class="container">
+        <h2>Get In Touch</h2>
+        <div class="contact-content">
+            <div class="contact-info">
+                <h3>Contact Information</h3>
+                <p><i class="fas fa-map-marker-alt"></i> Bujumbura, Burundi</p>
+                <p><i class="fas fa-phone"></i> +257 68 59 61 64</p>
+                <p><i class="fas fa-envelope"></i> busco@gmail.com</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-facebook"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                    <a href="https://wa.me/68596164"><i class="fab fa-whatsapp"></i></a>
                 </div>
-                <div class="contact-form">
-    <h3>Send Us a Message</h3>
-    <form id="contactForm">
-        <div class="form-group">
-            <input type="text" id="contactName" name="name" placeholder="Your Name" required>
+            </div>
+            <div class="contact-form">
+                <h3>Send Us a Message</h3>
+                <form id="contactForm">
+                    <div class="form-group">
+                        <input type="text" name="name" placeholder="Your Name" required>
+                    </div>
+                    <div class="form-group">
+                        <input type="email" name="email" placeholder="Your Email" required>
+                    </div>
+                    <div class="form-group">
+                        <textarea name="message" placeholder="Your Message" required></textarea>
+                    </div>
+                    <button type="submit" class="btn">Send Message</button>
+                </form>
+                <p id="formStatus"></p>
+            </div>
         </div>
-        <div class="form-group">
-            <input type="email" id="contactEmail" name="email" placeholder="Your Email" required>
-        </div>
-        <div class="form-group">
-            <textarea id="contactMessage" name="message" placeholder="Your Message" required></textarea>
-        </div>
-        <button type="submit" class="btn">Send Message</button>
-        <div id="formResponse" class="form-response"></div>
-    </form>
-</div>
-    </section>
+    </div>
+</section>
+
+<script>
+document.getElementById('contactForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    let formData = new FormData(this);
+
+    fetch('/send_message', {
+        method: 'POST',
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('formStatus').textContent = "✅ Message sent successfully!";
+            document.getElementById('formStatus').style.color = "green";
+            this.reset();
+        } else {
+            document.getElementById('formStatus').textContent = "❌ " + (data.error || "Failed to send message.");
+            document.getElementById('formStatus').style.color = "red";
+        }
+    })
+    .catch(() => {
+        document.getElementById('formStatus').textContent = "❌ Something went wrong.";
+        document.getElementById('formStatus').style.color = "red";
+    });
+});
+</script>
+
+
 {% endblock %}

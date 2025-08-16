@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-
 {% block title %}Messages - BUSCO Admin{% endblock %}
 
 {% block content %}
 <section class="admin-messages">
     <div class="container">
         <h2>Customer Messages</h2>
-        
+
         {% if not messages %}
         <div class="no-messages">
             <p>No messages found in the database.</p>
@@ -27,7 +26,7 @@
                 </thead>
                 <tbody>
                     {% for message in messages %}
-                    <tr class="{{ 'unread' if not message['read'] else '' }}">
+                    <tr id="msg-{{ message['id'] }}" class="{{ 'unread' if not message['read'] else '' }}">
                         <td>{{ message['id'] }}</td>
                         <td>{{ message['name'] }}</td>
                         <td><a href="mailto:{{ message['email'] }}">{{ message['email'] }}</a></td>
@@ -41,6 +40,7 @@
                         </td>
                         <td>
                             <button class="btn view-btn" data-id="{{ message['id'] }}">View</button>
+                            <button class="btn delete-btn" data-id="{{ message['id'] }}">Delete</button>
                         </td>
                     </tr>
                     {% endfor %}
@@ -51,21 +51,26 @@
     </div>
 </section>
 
-<!-- Message View Modal -->
+<!-- Message Modal -->
 <div id="messageModal" class="modal">
     <div class="modal-content">
         <span class="close">&times;</span>
         <h3>Message Details</h3>
-        <div class="message-content">
-            <p><strong>ID:</strong> <span id="messageId"></span></p>
-            <p><strong>Name:</strong> <span id="messageName"></span></p>
-            <p><strong>Email:</strong> <span id="messageEmail"></span></p>
-            <p><strong>Date:</strong> <span id="messageDate"></span></p>
-            <div class="message-body">
-                <p><strong>Message:</strong></p>
-                <p id="messageText"></p>
-            </div>
+        <p><strong>ID:</strong> <span id="messageId"></span></p>
+        <p><strong>Name:</strong> <span id="messageName"></span></p>
+        <p><strong>Email:</strong> <span id="messageEmail"></span></p>
+        <p><strong>Date:</strong> <span id="messageDate"></span></p>
+        <div class="message-body">
+            <p><strong>Message:</strong></p>
+            <p id="messageText"></p>
         </div>
+
+        <h4>Reply</h4>
+        <form id="replyForm">
+            <textarea name="reply_message" placeholder="Type your reply..." required></textarea>
+            <input type="hidden" name="email" id="replyEmail">
+            <button type="submit" class="btn">Send Reply</button>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -73,43 +78,71 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // View message details
+    let modal = document.getElementById('messageModal');
+
+    // View message
     document.querySelectorAll('.view-btn').forEach(btn => {
         btn.addEventListener('click', function() {
-            const row = this.closest('tr');
-            const modal = document.getElementById('messageModal');
-            
-            // Populate modal
-            document.getElementById('messageId').textContent = row.cells[0].textContent;
-            document.getElementById('messageName').textContent = row.cells[1].textContent;
-            document.getElementById('messageEmail').textContent = row.cells[2].textContent;
-            document.getElementById('messageDate').textContent = row.cells[3].textContent;
-            
-            // Get full message text (you'll need to implement this API endpoint)
-            fetch(`/admin/get_message/${row.cells[0].textContent}`)
-                .then(response => response.json())
+            let id = this.dataset.id;
+            fetch(`/admin/get_message/${id}`)
+                .then(res => res.json())
                 .then(data => {
+                    document.getElementById('messageId').textContent = data.id;
+                    document.getElementById('messageName').textContent = data.name;
+                    document.getElementById('messageEmail').textContent = data.email;
+                    document.getElementById('messageDate').textContent = data.created_at;
                     document.getElementById('messageText').textContent = data.message;
+                    document.getElementById('replyEmail').value = data.email;
+
                     modal.style.display = 'block';
-                    
+
                     // Mark as read
+                    let row = document.getElementById(`msg-${id}`);
                     if (row.classList.contains('unread')) {
-                        fetch(`/admin/mark_read/${row.cells[0].textContent}`)
-                            .then(response => response.json())
-                            .then(data => {
-                                if (data.success) {
-                                    row.classList.remove('unread');
-                                    row.cells[4].innerHTML = '<span class="badge read-badge">Read</span>';
-                                }
-                            });
+                        fetch(`/admin/mark_read/${id}`).then(() => {
+                            row.classList.remove('unread');
+                            row.cells[4].innerHTML = '<span class="badge read-badge">Read</span>';
+                        });
                     }
                 });
         });
     });
-    
+
+    // Delete message
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if (!confirm("Delete this message?")) return;
+            let id = this.dataset.id;
+            fetch(`/admin/delete_message/${id}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`msg-${id}`).remove();
+                        alert("Message deleted.");
+                    }
+                });
+        });
+    });
+
+    // Reply
+    document.getElementById('replyForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+        fetch('/admin/reply_message', { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Reply sent!");
+                    modal.style.display = 'none';
+                } else {
+                    alert("Failed to send reply.");
+                }
+            });
+    });
+
     // Close modal
     document.querySelector('.close').addEventListener('click', function() {
-        document.getElementById('messageModal').style.display = 'none';
+        modal.style.display = 'none';
     });
 });
 </script>

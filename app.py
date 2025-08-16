@@ -212,7 +212,7 @@ def send_message():
         """)
         msg['Subject'] = f"BUSCO Contact: New message from {name}"
         msg['From'] = app.config['MAIL_DEFAULT_SENDER']
-        msg['To'] = 'busco@gmail.com'  # Your receiving email
+        msg['To'] = 'mugishapc1@gmail.com'  # Your receiving email
         
         with smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT']) as server:
             server.ehlo()
@@ -328,6 +328,61 @@ def get_message(message_id):
             'read': message['read']
         })
     return jsonify({'error': 'Message not found'}), 404
+
+@app.route('/admin/send_reply', methods=['POST'])
+def send_reply():
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    email = request.form.get('email')
+    reply_text = request.form.get('reply')
+
+    if not email or not reply_text:
+        return jsonify({'error': 'Email and reply are required'}), 400
+
+    try:
+        msg = MIMEText(f"""
+        Hello,
+
+        {reply_text}
+
+        --  
+        BUSCO Admin
+        """)
+        msg['Subject'] = "Reply from BUSCO Admin"
+        msg['From'] = app.config['mugishapc1@gmail.com']
+        msg['To'] = email
+
+        with smtplib.SMTP(app.config['MAIL_SERVER'], app.config['MAIL_PORT']) as server:
+            server.ehlo()
+            server.starttls()
+            server.login(app.config['mugishapc1@gmail.com'], app.config['oljteuieollgwxxf'])
+            server.sendmail(app.config['mugishapc1@gmail.com'], [email], msg.as_string())
+
+        return jsonify({'success': True})
+
+    except Exception as e:
+        print(f"Failed to send reply: {str(e)}")
+        return jsonify({'error': 'Failed to send reply'}), 500
+
+
+@app.route('/admin/delete_message/<int:message_id>', methods=['POST'])
+def delete_message(message_id):
+    if not session.get('admin_logged_in'):
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        conn = sqlite3.connect('products.db')
+        c = conn.cursor()
+        c.execute("DELETE FROM messages WHERE id = ?", (message_id,))
+        conn.commit()
+        conn.close()
+        return jsonify({'success': True})
+    except Exception as e:
+        print(f"Failed to delete message: {e}")
+        return jsonify({'error': 'Failed to delete message'}), 500
+
+
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
